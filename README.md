@@ -22,7 +22,7 @@ generator.set_points(list_of_vector2)
 generator.set_boundaries(rect2_bounds)
 
 # Generate diagram
-var diagram = voronoi.generate_diagram()
+var diagram = generator.generate_diagram()
 
 # Iterate over sites
 for site in diagram.sites():
