@@ -13,7 +13,9 @@
 #include <memory>
 #include <vector>
 
+#include <dictionary.h>
 #include <math_2d.h>
+#include <object.h>
 #include <reference.h>
 #include <variant.h>
 #include <vector.h>
@@ -22,16 +24,18 @@
 
 class VoronoiEdge;
 class VoronoiSite;
+class VoronoiDiagram;
 
-class VoronoiEdge : public Reference {
-	OBJ_TYPE(VoronoiEdge, Reference)
+class VoronoiEdge : public Object {
+	OBJ_TYPE(VoronoiEdge, Object)
 
 public:
 	const jcv_edge* _edge;
+	const VoronoiDiagram* _diagram;
 
 	VoronoiEdge() = default;
-	inline VoronoiEdge(const jcv_edge* edge)
-		: _edge(edge) {
+	inline VoronoiEdge(const jcv_edge* edge, const VoronoiDiagram* diagram)
+		: _edge(edge), _diagram(diagram) {
 	}
 
 	~VoronoiEdge() = default;
@@ -44,15 +48,16 @@ protected:
 	static void _bind_methods();
 };
 
-class VoronoiSite : public Reference {
-	OBJ_TYPE(VoronoiSite, Reference)
+class VoronoiSite : public Object {
+	OBJ_TYPE(VoronoiSite, Object)
 
 public:
 	const jcv_site* _site;
+	const VoronoiDiagram* _diagram;
 
 	VoronoiSite() = default;
-	inline VoronoiSite(const jcv_site* site)
-		: _site(site) {
+	inline VoronoiSite(const jcv_site* site, const VoronoiDiagram* diagram)
+		: _site(site), _diagram(diagram) {
 	}
 
 	~VoronoiSite() = default;
@@ -72,8 +77,16 @@ class VoronoiDiagram : public Reference {
 public:
 	jcv_diagram* _diagram;
 
+	Variant _edges;
+	Variant _sites;
+
+	Dictionary _edges_by_address;
+	Dictionary _sites_by_index;
+
 	VoronoiDiagram();
 	~VoronoiDiagram();
+
+	void build_objects();
 
 	Variant edges() const;
 	Variant sites() const;

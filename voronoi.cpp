@@ -3,17 +3,10 @@
 #define JC_VORONOI_IMPLEMENTATION
 #include "voronoi.h"
 
-#define NEW_REF(CLASS, ...) Variant(Ref<CLASS>(new CLASS(__VA_ARGS__)).get_ref_ptr())
-
-template<typename T, typename... As>
-Variant new_ref_variant(As&&... args) {
-	return Variant(Ref<T>(new T(std::forward<As>(args)...)).get_ref_ptr());
-}
-
 Variant VoronoiEdge::sites() const {
 	Vector<Variant> result;
-	result.push_back(new_ref_variant<VoronoiSite>(_edge->sites[0]));
-	result.push_back(new_ref_variant<VoronoiSite>(_edge->sites[1]));
+	result.push_back(_diagram->_sites_by_index[Variant(_edge->sites[0]->index)]);
+	result.push_back(_diagram->_sites_by_index[Variant(_edge->sites[1]->index)]);
 	return result;
 }
 
@@ -43,7 +36,7 @@ Variant VoronoiSite::edges() const {
 	Vector<Variant> result;
 	const jcv_graphedge* graphedge = _site->edges;
 	while (graphedge) {
-		result.push_back(new_ref_variant<VoronoiEdge>(graphedge->edge));
+		result.push_back(_diagram->_edges_by_address[Variant((long)graphedge->edge)]);
 		graphedge = graphedge->next;
 	}
 	return result;
@@ -54,7 +47,7 @@ Variant VoronoiSite::neighbors() const {
 	const jcv_graphedge* graphedge = _site->edges;
 	while (graphedge) {
 		if (graphedge->neighbor)
-			result.push_back(new_ref_variant<VoronoiSite>(graphedge->neighbor));
+			result.push_back(_diagram->_sites_by_index[Variant(graphedge->neighbor->index)]);
 		graphedge = graphedge->next;
 	}
 	return result;
@@ -73,26 +66,44 @@ VoronoiDiagram::VoronoiDiagram()
 }
 
 VoronoiDiagram::~VoronoiDiagram() {
+	Vector<Variant> gd_edges = _edges;
+	for (int i = 0; i < gd_edges.size(); i++)
+		memdelete(static_cast<Object*>(gd_edges[i]));
+
+	Vector<Variant> gd_sites = _sites;
+	for (int i = 0; i < gd_sites.size(); i++)
+		memdelete(static_cast<Object*>(gd_sites[i]));
+
 	jcv_diagram_free(_diagram);
 }
 
 Variant VoronoiDiagram::edges() const {
-	Vector<Variant> result;
-	const jcv_edge* edge = jcv_diagram_get_edges(_diagram);
-	while (edge) {
-		result.push_back(new_ref_variant<VoronoiEdge>(edge));
-		edge = edge->next;
-	}
-	return result;
+	return _edges;
 }
 
 Variant VoronoiDiagram::sites() const {
-	Vector<Variant> result;
+	return _sites;
+}
+
+void VoronoiDiagram::build_objects() {
+	Vector<Variant> gd_edges;
+	const jcv_edge* edge = jcv_diagram_get_edges(_diagram);
+	while (edge) {
+		Variant gd_edge = Variant(memnew(VoronoiEdge(edge, this)));
+		gd_edges.push_back(gd_edge);
+		_edges_by_address[Variant((long)edge)] = gd_edge;
+		edge = edge->next;
+	}
+	_edges = gd_edges;
+
+	Vector<Variant> gd_sites;
 	const jcv_site* sites = jcv_diagram_get_sites(_diagram);
 	for (int i = 0; i < _diagram->numsites; i++) {
-		result.push_back(new_ref_variant<VoronoiSite>(&sites[i]));
+		Variant gd_site = Variant(memnew(VoronoiSite(&sites[i], this)));
+		_sites_by_index[Variant(sites[i].index)] = gd_site;
+		gd_sites.push_back(gd_site);
 	}
-	return result;
+	_sites = gd_sites;
 }
 
 void VoronoiDiagram::_bind_methods() {
@@ -129,8 +140,9 @@ void userfree(void* ctx, void* ptr) {
 }
 
 Ref<VoronoiDiagram> Voronoi::generate_diagram() const {
-	Ref<VoronoiDiagram> result { new VoronoiDiagram() };
+	Ref<VoronoiDiagram> result { memnew(VoronoiDiagram) };
 	jcv_diagram_generate_useralloc(_points.size(), _points.data(), _boundaries.get(), NULL, &useralloc, &userfree, result->_diagram);
+	result->build_objects();
 	return result;
 }
 
