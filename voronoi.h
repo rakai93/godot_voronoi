@@ -60,6 +60,7 @@ public:
 	int index() const;
 	Vector2 center() const;
 	Variant edges() const;
+	Variant neighbors() const;
 
 protected:
 	static void _bind_methods();

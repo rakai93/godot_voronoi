@@ -49,10 +49,22 @@ Variant VoronoiSite::edges() const {
 	return result;
 }
 
+Variant VoronoiSite::neighbors() const {
+	Vector<Variant> result;
+	const jcv_graphedge* graphedge = _site->edges;
+	while (graphedge) {
+		if (graphedge->neighbor)
+			result.push_back(new_ref_variant<VoronoiSite>(graphedge->neighbor));
+		graphedge = graphedge->next;
+	}
+	return result;
+}
+
 void VoronoiSite::_bind_methods() {
 	ObjectTypeDB::bind_method(_MD("index"), &VoronoiSite::index);
 	ObjectTypeDB::bind_method(_MD("center"), &VoronoiSite::center);
 	ObjectTypeDB::bind_method(_MD("edges"), &VoronoiSite::edges);
+	ObjectTypeDB::bind_method(_MD("neighbors"), &VoronoiSite::neighbors);
 }
 
 VoronoiDiagram::VoronoiDiagram()
