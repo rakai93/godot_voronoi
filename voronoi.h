@@ -27,7 +27,7 @@ class VoronoiSite;
 class VoronoiDiagram;
 
 class VoronoiEdge : public Object {
-	OBJ_TYPE(VoronoiEdge, Object)
+	GDCLASS(VoronoiEdge, Object)
 
 public:
 	const jcv_edge* _edge;
@@ -49,7 +49,7 @@ protected:
 };
 
 class VoronoiSite : public Object {
-	OBJ_TYPE(VoronoiSite, Object)
+	GDCLASS(VoronoiSite, Object)
 
 public:
 	const jcv_site* _site;
@@ -72,7 +72,7 @@ protected:
 };
 
 class VoronoiDiagram : public Reference {
-	OBJ_TYPE(VoronoiDiagram, Reference)
+	GDCLASS(VoronoiDiagram, Reference)
 
 public:
 	jcv_diagram* _diagram;
@@ -96,7 +96,7 @@ protected:
 };
 
 class Voronoi : public Reference {
-	OBJ_TYPE(Voronoi, Reference)
+	GDCLASS(Voronoi, Reference)
 
 	std::unique_ptr<jcv_rect> _boundaries;
 	std::vector<jcv_point> _points;
