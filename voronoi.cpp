@@ -19,9 +19,9 @@ Vector2 VoronoiEdge::end() const {
 }
 
 void VoronoiEdge::_bind_methods() {
-	ObjectTypeDB::bind_method(_MD("sites"), &VoronoiEdge::sites);
-	ObjectTypeDB::bind_method(_MD("start"), &VoronoiEdge::start);
-	ObjectTypeDB::bind_method(_MD("end"), &VoronoiEdge::end);
+	ClassDB::bind_method(D_METHOD("sites"), &VoronoiEdge::sites);
+	ClassDB::bind_method(D_METHOD("start"), &VoronoiEdge::start);
+	ClassDB::bind_method(D_METHOD("end"), &VoronoiEdge::end);
 }
 
 int VoronoiSite::index() const {
@@ -54,10 +54,10 @@ Variant VoronoiSite::neighbors() const {
 }
 
 void VoronoiSite::_bind_methods() {
-	ObjectTypeDB::bind_method(_MD("index"), &VoronoiSite::index);
-	ObjectTypeDB::bind_method(_MD("center"), &VoronoiSite::center);
-	ObjectTypeDB::bind_method(_MD("edges"), &VoronoiSite::edges);
-	ObjectTypeDB::bind_method(_MD("neighbors"), &VoronoiSite::neighbors);
+	ClassDB::bind_method(D_METHOD("index"), &VoronoiSite::index);
+	ClassDB::bind_method(D_METHOD("center"), &VoronoiSite::center);
+	ClassDB::bind_method(D_METHOD("edges"), &VoronoiSite::edges);
+	ClassDB::bind_method(D_METHOD("neighbors"), &VoronoiSite::neighbors);
 }
 
 VoronoiDiagram::VoronoiDiagram()
@@ -107,8 +107,8 @@ void VoronoiDiagram::build_objects() {
 }
 
 void VoronoiDiagram::_bind_methods() {
-	ObjectTypeDB::bind_method(_MD("edges"), &VoronoiDiagram::edges);
-	ObjectTypeDB::bind_method(_MD("sites"), &VoronoiDiagram::sites);
+    ClassDB::bind_method(D_METHOD("edges"), &VoronoiDiagram::edges);
+    ClassDB::bind_method(D_METHOD("sites"), &VoronoiDiagram::sites);
 }
 
 void Voronoi::set_points(Vector<Vector2> points) {
@@ -126,8 +126,8 @@ void Voronoi::set_points(Vector<Vector2> points) {
 
 void Voronoi::set_boundaries(Rect2 boundaries) {
 	_boundaries.reset(new jcv_rect {
-		jcv_point { boundaries.pos.x, boundaries.pos.y },
-		jcv_point { boundaries.pos.x + boundaries.size.x, boundaries.pos.y + boundaries.size.y }
+		jcv_point { boundaries.position.x, boundaries.position.y },
+		jcv_point { boundaries.position.x + boundaries.size.x, boundaries.position.y + boundaries.size.y }
 	});
 }
 
@@ -147,7 +147,7 @@ Ref<VoronoiDiagram> Voronoi::generate_diagram() const {
 }
 
 void Voronoi::_bind_methods() {
-    ObjectTypeDB::bind_method(_MD("set_points", "points"), &Voronoi::set_points);
-	ObjectTypeDB::bind_method(_MD("set_boundaries", "boundaries"), &Voronoi::set_boundaries);
-	ObjectTypeDB::bind_method(_MD("generate_diagram"), &Voronoi::generate_diagram);
+    ClassDB::bind_method(D_METHOD("set_points", "points"), &Voronoi::set_points);
+    ClassDB::bind_method(D_METHOD("set_boundaries", "boundaries"), &Voronoi::set_boundaries);
+    ClassDB::bind_method(D_METHOD("generate_diagram"), &Voronoi::generate_diagram);
 }
