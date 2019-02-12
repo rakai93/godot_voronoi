@@ -112,6 +112,7 @@ USAGE:
 
 #include <math.h>
 #include <stddef.h>
+#include <stdlib.h>
 
 #include <assert.h>
 
@@ -431,13 +432,13 @@ static jcv_graphedge* jcv_alloc_graphedge(jcv_context_internal* internal)
 static void* jcv_alloc_fn(void* memctx, size_t size)
 {
 	(void)memctx;
-	return malloc(size);
+	return memalloc(size);
 }
 
 static void jcv_free_fn(void* memctx, void* p)
 {
 	(void)memctx;
-	free(p);
+	memfree(p);
 }
 
 // jcv_edge
