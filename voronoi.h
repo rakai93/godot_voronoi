@@ -13,12 +13,14 @@
 #include <memory>
 #include <vector>
 
-#include <dictionary.h>
-#include <math_2d.h>
-#include <object.h>
-#include <reference.h>
-#include <variant.h>
-#include <vector.h>
+#include <core/dictionary.h>
+#include <core/math/transform_2d.h>
+#include <core/math/vector2.h>
+#include <core/math/rect2.h>
+#include <core/object.h>
+#include <core/reference.h>
+#include <core/variant.h>
+#include <core/vector.h>
 
 #include "lib/jc_voronoi.h"
 
