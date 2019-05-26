@@ -1,7 +1,7 @@
 Voronoi Godot integration
 =========================
 
-Integration of [JCash's Voronoi implementation](https://github.com/JCash/voronoi) as Godot module.
+Integration of [JCash's Voronoi implementation](https://github.com/JCash/voronoi) as a Godot V3.1.1 module.
 
 Install
 -------
