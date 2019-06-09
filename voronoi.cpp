@@ -36,7 +36,7 @@ Variant VoronoiSite::edges() const {
 	Vector<Variant> result;
 	const jcv_graphedge* graphedge = _site->edges;
 	while (graphedge) {
-		result.push_back(_diagram->_edges_by_address[Variant((long)graphedge->edge)]);
+		result.push_back(_diagram->_edges_by_address[Variant((uint64_t)graphedge->edge)]);
 		graphedge = graphedge->next;
 	}
 	return result;
@@ -91,7 +91,7 @@ void VoronoiDiagram::build_objects() {
 	while (edge) {
 		Variant gd_edge = Variant(memnew(VoronoiEdge(edge, this)));
 		gd_edges.push_back(gd_edge);
-		_edges_by_address[Variant((long)edge)] = gd_edge;
+		_edges_by_address[Variant((uint64_t)edge)] = gd_edge;
 		edge = edge->next;
 	}
 	_edges = gd_edges;
