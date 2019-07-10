@@ -1,20 +1,7 @@
 #ifndef VORONOI_H
 #define VORONOI_H
 
-// see https://github.com/JCash/voronoi/blob/master/src/main.c
-
-#if defined(_MSC_VER)
-#include <malloc.h>
-#define alloca _alloca
-#else
-#include <alloca.h>
-#endif
-
-#include <memory>
-#include <vector>
-
 #include <core/dictionary.h>
-#include <core/math/transform_2d.h>
 #include <core/math/vector2.h>
 #include <core/math/rect2.h>
 #include <core/object.h>
@@ -77,7 +64,7 @@ class VoronoiDiagram : public Reference {
 	GDCLASS(VoronoiDiagram, Reference)
 
 public:
-	jcv_diagram* _diagram;
+	jcv_diagram _diagram;
 
 	Variant _edges;
 	Variant _sites;
@@ -100,8 +87,9 @@ protected:
 class Voronoi : public Reference {
 	GDCLASS(Voronoi, Reference)
 
-	std::unique_ptr<jcv_rect> _boundaries;
-	std::vector<jcv_point> _points;
+	jcv_rect _boundaries;
+	bool _has_boundaries;
+	Vector<jcv_point> _points;
 
 public:
 	Voronoi() = default;
