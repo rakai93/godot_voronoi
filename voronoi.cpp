@@ -143,19 +143,18 @@ void Voronoi::relax_points(int iterations = 1) {
 	std::vector<jcv_point> new_points;
 	new_points.reserve(_points.size());
 	for (int j = 0; j < iterations; j++) {
-		Ref<VoronoiDiagram> diagram { memnew(VoronoiDiagram) };
-		jcv_diagram_generate_useralloc(
+		jcv_diagram diagram;
+		memset(&diagram, 0, sizeof(jcv_diagram));
+		jcv_diagram_generate(
 			_points.size(),
 			_points.data(),
-			_boundaries.get(),
-			NULL,
-			&useralloc,
-			&userfree,
-			diagram->_diagram
+			0,
+			&diagram
 		);
-		diagram->build_objects();
-		const jcv_site* sites = jcv_diagram_get_sites(diagram->_diagram);
-		for( int i = 0; i < diagram->_diagram->numsites; ++i )
+		const jcv_site* sites = jcv_diagram_get_sites(&diagram);
+		const int numsites = diagram.numsites;
+		jcv_diagram_free(&diagram);
+		for( int i = 0; i < numsites; ++i )
 		{
 			const jcv_site* site = &sites[i];
 			jcv_point sum = site->p;
