@@ -1,4 +1,6 @@
-#include <utility>
+extern "C" {
+#include <stdint.h>
+}
 
 #define JC_VORONOI_IMPLEMENTATION
 #include "voronoi.h"
@@ -36,7 +38,9 @@ Variant VoronoiSite::edges() const {
 	Vector<Variant> result;
 	const jcv_graphedge* graphedge = _site->edges;
 	while (graphedge) {
-		result.push_back(_diagram->_edges_by_address[Variant((long)graphedge->edge)]);
+		result.push_back(_diagram->_edges_by_address[
+			Variant(reinterpret_cast<uintptr_t>(graphedge->edge))
+		]);
 		graphedge = graphedge->next;
 	}
 	return result;
@@ -61,8 +65,8 @@ void VoronoiSite::_bind_methods() {
 }
 
 VoronoiDiagram::VoronoiDiagram()
-	: _diagram(new jcv_diagram) {
-	memset(_diagram, 0, sizeof(jcv_diagram));
+	: _diagram() {
+	memset(&_diagram, 0, sizeof(jcv_diagram));
 }
 
 VoronoiDiagram::~VoronoiDiagram() {
@@ -74,7 +78,7 @@ VoronoiDiagram::~VoronoiDiagram() {
 	for (int i = 0; i < gd_sites.size(); i++)
 		memdelete(static_cast<Object*>(gd_sites[i]));
 
-	jcv_diagram_free(_diagram);
+	jcv_diagram_free(&_diagram);
 }
 
 Variant VoronoiDiagram::edges() const {
@@ -87,18 +91,20 @@ Variant VoronoiDiagram::sites() const {
 
 void VoronoiDiagram::build_objects() {
 	Vector<Variant> gd_edges;
-	const jcv_edge* edge = jcv_diagram_get_edges(_diagram);
+	const jcv_edge* edge = jcv_diagram_get_edges(&_diagram);
 	while (edge) {
 		Variant gd_edge = Variant(memnew(VoronoiEdge(edge, this)));
 		gd_edges.push_back(gd_edge);
-		_edges_by_address[Variant((long)edge)] = gd_edge;
+		_edges_by_address[
+			Variant(reinterpret_cast<uintptr_t>(edge))
+		] = gd_edge;
 		edge = edge->next;
 	}
 	_edges = gd_edges;
 
 	Vector<Variant> gd_sites;
-	const jcv_site* sites = jcv_diagram_get_sites(_diagram);
-	for (int i = 0; i < _diagram->numsites; i++) {
+	const jcv_site* sites = jcv_diagram_get_sites(&_diagram);
+	for (int i = 0; i < _diagram.numsites; i++) {
 		Variant gd_site = Variant(memnew(VoronoiSite(&sites[i], this)));
 		_sites_by_index[Variant(sites[i].index)] = gd_site;
 		gd_sites.push_back(gd_site);
@@ -114,21 +120,20 @@ void VoronoiDiagram::_bind_methods() {
 void Voronoi::set_points(Vector<Vector2> points) {
 	assert(points.size());
 
-	std::vector<jcv_point> new_points;
-	new_points.reserve(points.size());
-
 	// translate Godot Vector2 points into jcv_points
+	Vector<jcv_point> new_points;
 	for (int i = 0; i < points.size(); i++)
 		new_points.push_back({ points[i].x, points[i].y });
 
-	_points.swap(new_points);
+	_points = new_points;
 }
 
 void Voronoi::set_boundaries(Rect2 boundaries) {
-	_boundaries.reset(new jcv_rect {
+	_boundaries = jcv_rect {
 		jcv_point { boundaries.position.x, boundaries.position.y },
 		jcv_point { boundaries.position.x + boundaries.size.x, boundaries.position.y + boundaries.size.y }
-	});
+	};
+	_has_boundaries = true;
 }
 
 void* useralloc(void* ctx, size_t size) {
@@ -141,7 +146,15 @@ void userfree(void* ctx, void* ptr) {
 
 Ref<VoronoiDiagram> Voronoi::generate_diagram() const {
 	Ref<VoronoiDiagram> result { memnew(VoronoiDiagram) };
-	jcv_diagram_generate_useralloc(_points.size(), _points.data(), _boundaries.get(), NULL, &useralloc, &userfree, result->_diagram);
+	jcv_diagram_generate_useralloc(
+		_points.size(),
+		_points.ptr(),
+		_has_boundaries ? &_boundaries : NULL,
+		NULL,
+		&useralloc,
+		&userfree,
+		&(result->_diagram)
+	);
 	result->build_objects();
 	return result;
 }
