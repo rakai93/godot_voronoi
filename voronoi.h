@@ -9,7 +9,7 @@
 #include <core/variant.h>
 #include <core/vector.h>
 
-#include "lib/jc_voronoi.h"
+#include "lib/src/jc_voronoi.h"
 
 class VoronoiEdge;
 class VoronoiSite;
