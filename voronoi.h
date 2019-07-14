@@ -1,7 +1,11 @@
 #ifndef VORONOI_H
 #define VORONOI_H
 
-#include <core/dictionary.h>
+#include <cstdint>
+#include <map>
+#include <type_traits>
+#include <vector>
+
 #include <core/math/vector2.h>
 #include <core/math/rect2.h>
 #include <core/object.h>
@@ -9,7 +13,42 @@
 #include <core/variant.h>
 #include <core/vector.h>
 
-#include "lib/jc_voronoi.h"
+#include "lib/src/jc_voronoi.h"
+
+namespace voronoi_detail {
+
+template<typename T>
+struct GodotAllocator {
+	using value_type = T;
+	using propagate_on_container_move_assignment = std::true_type;
+	using is_always_equal = std::true_type;
+
+	inline T* allocate(size_t n) {
+		return memnew_arr(T, n);
+	}
+
+	inline void deallocate(T* ptr, size_t) {
+		memdelete_arr(ptr);
+	}
+};
+
+template<typename T>
+bool operator==(const GodotAllocator<T>&, const GodotAllocator<T>&) {
+	return true;
+}
+
+template<typename T>
+bool operator!=(const GodotAllocator<T>&, const GodotAllocator<T>&) {
+	return false;
+}
+
+template<typename K, typename V>
+using map = std::map<K, V, std::less<K>, GodotAllocator<std::pair<const K, V>>>;
+
+template<typename T>
+using vector = std::vector<T, GodotAllocator<T>>;
+
+}  // namespace voronoi_detail
 
 class VoronoiEdge;
 class VoronoiSite;
@@ -29,7 +68,7 @@ public:
 
 	~VoronoiEdge() = default;
 
-	Variant sites() const;
+	Vector<Variant> sites() const;
 	Vector2 start() const;
 	Vector2 end() const;
 
@@ -53,8 +92,8 @@ public:
 
 	int index() const;
 	Vector2 center() const;
-	Variant edges() const;
-	Variant neighbors() const;
+	Vector<Variant> edges() const;
+	Vector<Variant> neighbors() const;
 
 protected:
 	static void _bind_methods();
@@ -66,19 +105,19 @@ class VoronoiDiagram : public Reference {
 public:
 	jcv_diagram _diagram;
 
-	Variant _edges;
-	Variant _sites;
+	voronoi_detail::vector<Variant> _edges;
+	voronoi_detail::vector<Variant> _sites;
 
-	Dictionary _edges_by_address;
-	Dictionary _sites_by_index;
+	voronoi_detail::map<std::uintptr_t, VoronoiEdge*> _edges_by_address;
+	voronoi_detail::map<int, VoronoiSite*> _sites_by_index;
 
 	VoronoiDiagram();
 	~VoronoiDiagram();
 
 	void build_objects();
 
-	Variant edges() const;
-	Variant sites() const;
+	Vector<Variant> edges() const;
+	Vector<Variant> sites() const;
 
 protected:
 	static void _bind_methods();
@@ -89,7 +128,7 @@ class Voronoi : public Reference {
 
 	jcv_rect _boundaries;
 	bool _has_boundaries;
-	Vector<jcv_point> _points;
+	voronoi_detail::vector<jcv_point> _points;
 
 public:
 	Voronoi() = default;

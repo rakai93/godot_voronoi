@@ -1,14 +1,14 @@
-extern "C" {
-#include <stdint.h>
-}
+#include <algorithm>
+#include <type_traits>
 
 #define JC_VORONOI_IMPLEMENTATION
 #include "voronoi.h"
 
-Variant VoronoiEdge::sites() const {
+Vector<Variant> VoronoiEdge::sites() const {
 	Vector<Variant> result;
-	result.push_back(_diagram->_sites_by_index[Variant(_edge->sites[0]->index)]);
-	result.push_back(_diagram->_sites_by_index[Variant(_edge->sites[1]->index)]);
+	result.push_back(_diagram->_sites_by_index.at(_edge->sites[0]->index));
+	if (_edge->sites[1] != nullptr)
+		result.push_back(_diagram->_sites_by_index.at(_edge->sites[1]->index));
 	return result;
 }
 
@@ -34,24 +34,24 @@ Vector2 VoronoiSite::center() const {
 	return Vector2(_site->p.x, _site->p.y);
 }
 
-Variant VoronoiSite::edges() const {
+Vector<Variant> VoronoiSite::edges() const {
 	Vector<Variant> result;
 	const jcv_graphedge* graphedge = _site->edges;
 	while (graphedge) {
-		result.push_back(_diagram->_edges_by_address[
-			Variant(reinterpret_cast<uintptr_t>(graphedge->edge))
-		]);
+		result.push_back(_diagram->_edges_by_address.at(
+			reinterpret_cast<std::uintptr_t>(graphedge->edge)
+		));
 		graphedge = graphedge->next;
 	}
 	return result;
 }
 
-Variant VoronoiSite::neighbors() const {
+Vector<Variant> VoronoiSite::neighbors() const {
 	Vector<Variant> result;
 	const jcv_graphedge* graphedge = _site->edges;
 	while (graphedge) {
 		if (graphedge->neighbor)
-			result.push_back(_diagram->_sites_by_index[Variant(graphedge->neighbor->index)]);
+			result.push_back(_diagram->_sites_by_index.at(graphedge->neighbor->index));
 		graphedge = graphedge->next;
 	}
 	return result;
@@ -70,46 +70,49 @@ VoronoiDiagram::VoronoiDiagram()
 }
 
 VoronoiDiagram::~VoronoiDiagram() {
-	Vector<Variant> gd_edges = _edges;
-	for (int i = 0; i < gd_edges.size(); i++)
-		memdelete(static_cast<Object*>(gd_edges[i]));
-
-	Vector<Variant> gd_sites = _sites;
-	for (int i = 0; i < gd_sites.size(); i++)
-		memdelete(static_cast<Object*>(gd_sites[i]));
+	for (auto edge : _edges)
+		memdelete(static_cast<Object*>(edge));
+	for (auto site : _sites)
+		memdelete(static_cast<Object*>(site));
 
 	jcv_diagram_free(&_diagram);
 }
 
-Variant VoronoiDiagram::edges() const {
-	return _edges;
+Vector<Variant> VoronoiDiagram::edges() const {
+	Vector<Variant> result;
+	result.resize(_edges.size());
+	for (auto edge : _edges)
+		result.push_back(edge);
+	return result;
 }
 
-Variant VoronoiDiagram::sites() const {
-	return _sites;
+Vector<Variant> VoronoiDiagram::sites() const {
+	Vector<Variant> result;
+	result.resize(_sites.size());
+	for (auto site : _sites)
+		result.push_back(site);
+	return result;
 }
 
 void VoronoiDiagram::build_objects() {
-	Vector<Variant> gd_edges;
+	voronoi_detail::vector<Variant> gd_edges;
 	const jcv_edge* edge = jcv_diagram_get_edges(&_diagram);
 	while (edge) {
-		Variant gd_edge = Variant(memnew(VoronoiEdge(edge, this)));
+		VoronoiEdge* gd_edge = memnew(VoronoiEdge(edge, this));
 		gd_edges.push_back(gd_edge);
-		_edges_by_address[
-			Variant(reinterpret_cast<uintptr_t>(edge))
-		] = gd_edge;
+		_edges_by_address[reinterpret_cast<std::uintptr_t>(edge)] = gd_edge;
 		edge = edge->next;
 	}
-	_edges = gd_edges;
+	_edges.swap(gd_edges);
 
-	Vector<Variant> gd_sites;
+	voronoi_detail::vector<Variant> gd_sites;
 	const jcv_site* sites = jcv_diagram_get_sites(&_diagram);
 	for (int i = 0; i < _diagram.numsites; i++) {
-		Variant gd_site = Variant(memnew(VoronoiSite(&sites[i], this)));
-		_sites_by_index[Variant(sites[i].index)] = gd_site;
+		VoronoiSite* gd_site = memnew(VoronoiSite(&sites[i], this));
 		gd_sites.push_back(gd_site);
+		_sites_by_index[sites[i].index] = gd_site;
 	}
-	_sites = gd_sites;
+	_sites.swap(_sites);
 }
 
 void VoronoiDiagram::_bind_methods() {
@@ -121,11 +124,12 @@ void Voronoi::set_points(Vector<Vector2> points) {
 	assert(points.size());
 
 	// translate Godot Vector2 points into jcv_points
-	Vector<jcv_point> new_points;
+	voronoi_detail::vector<jcv_point> new_points;
+	new_points.resize(points.size());
 	for (int i = 0; i < points.size(); i++)
 		new_points.push_back({ points[i].x, points[i].y });
 
-	_points = new_points;
+	_points.swap(new_points);
 }
 
 void Voronoi::set_boundaries(Rect2 boundaries) {
@@ -187,7 +191,7 @@ Ref<VoronoiDiagram> Voronoi::generate_diagram() const {
 	Ref<VoronoiDiagram> result { memnew(VoronoiDiagram) };
 	jcv_diagram_generate_useralloc(
 		_points.size(),
-		_points.ptr(),
+		_points.data(),
 		_has_boundaries ? &_boundaries : NULL,
 		NULL,
 		&useralloc,

@@ -1,3 +1,8 @@
 Import('env')
 
-env.add_source_files(env.modules_sources,"*.cpp")
+module_env = env.Clone()
+module_env.add_source_files(env.modules_sources, "*.cpp")
+if env.msvc:
+    module_env.Append(CXXFLAGS=['/std:c++17'])
+else:
+    module_env.Append(CXXFLAGS=['-std=c++17'])
