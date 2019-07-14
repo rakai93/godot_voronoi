@@ -96,9 +96,13 @@ void VoronoiDiagram::build_objects() {
 	voronoi_detail::vector<Variant> gd_edges;
 	const jcv_edge* edge = jcv_diagram_get_edges(&_diagram);
 	while (edge) {
-		VoronoiEdge* gd_edge = memnew(VoronoiEdge(edge, this));
-		gd_edges.push_back(gd_edge);
-		_edges_by_address[reinterpret_cast<std::uintptr_t>(edge)] = gd_edge;
+		// apparent bug in jcv, egdes where start = end are reported as
+		// diagram edges, but do not exist when iterating over sites
+		if (edge->pos[0].x != edge->pos[1].x || edge->pos[0].y != edge->pos[1].y) {
+			VoronoiEdge* gd_edge = memnew(VoronoiEdge(edge, this));
+			gd_edges.push_back(gd_edge);
+			_edges_by_address[reinterpret_cast<std::uintptr_t>(edge)] = gd_edge;
+		}
 		edge = edge->next;
 	}
 	_edges.swap(gd_edges);
