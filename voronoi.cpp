@@ -110,7 +110,7 @@ void VoronoiDiagram::build_objects() {
 		gd_sites.push_back(gd_site);
 		_sites_by_index[sites[i].index] = gd_site;
 	}
-	_sites.swap(_sites);
+	_sites.swap(gd_sites);
 }
 
 void VoronoiDiagram::_bind_methods() {
