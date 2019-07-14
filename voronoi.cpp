@@ -8,7 +8,8 @@ extern "C" {
 Variant VoronoiEdge::sites() const {
 	Vector<Variant> result;
 	result.push_back(_diagram->_sites_by_index[Variant(_edge->sites[0]->index)]);
-	result.push_back(_diagram->_sites_by_index[Variant(_edge->sites[1]->index)]);
+	if (_edge->sites[1] != NULL)
+		result.push_back(_diagram->_sites_by_index[Variant(_edge->sites[1]->index)]);
 	return result;
 }
 
