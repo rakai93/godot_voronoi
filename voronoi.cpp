@@ -123,7 +123,6 @@ void Voronoi::set_points(Vector<Vector2> points) {
 
 	// translate Godot Vector2 points into jcv_points
 	voronoi_detail::vector<jcv_point> new_points;
-	new_points.resize(points.size());
 	for (int i = 0; i < points.size(); i++)
 		new_points.push_back({ points[i].x, points[i].y });
 
