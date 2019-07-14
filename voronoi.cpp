@@ -80,7 +80,6 @@ VoronoiDiagram::~VoronoiDiagram() {
 
 Vector<Variant> VoronoiDiagram::edges() const {
 	Vector<Variant> result;
-	result.resize(_edges.size());
 	for (auto edge : _edges)
 		result.push_back(edge);
 	return result;
@@ -88,7 +87,6 @@ Vector<Variant> VoronoiDiagram::edges() const {
 
 Vector<Variant> VoronoiDiagram::sites() const {
 	Vector<Variant> result;
-	result.resize(_sites.size());
 	for (auto site : _sites)
 		result.push_back(site);
 	return result;
