@@ -164,17 +164,14 @@ void Voronoi::relax_points(int iterations = 1) {
 		);
 		const jcv_site* sites = jcv_diagram_get_sites(&diagram);
 		const int numsites = diagram.numsites;
-		jcv_diagram_free(&diagram);
-		for( int i = 0; i < numsites; ++i )
-		{
+		for (int i = 0; i < numsites; ++i) {
 			const jcv_site* site = &sites[i];
 			jcv_point sum = site->p;
 			int count = 1;
 
 			const jcv_graphedge* edge = site->edges;
 
-			while( edge )
-			{
+			while (edge) {
 				sum.x += edge->pos[0].x;
 				sum.y += edge->pos[0].y;
 				++count;
@@ -183,6 +180,7 @@ void Voronoi::relax_points(int iterations = 1) {
 
 			new_points.push_back({ sum.x / count, sum.y / count });
 		}
+		jcv_diagram_free(&diagram);
 	}
 	_points.swap(new_points);
 }
