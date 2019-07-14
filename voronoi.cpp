@@ -80,7 +80,6 @@ VoronoiDiagram::~VoronoiDiagram() {
 
 Vector<Variant> VoronoiDiagram::edges() const {
 	Vector<Variant> result;
-	result.resize(_edges.size());
 	for (auto edge : _edges)
 		result.push_back(edge);
 	return result;
@@ -88,7 +87,6 @@ Vector<Variant> VoronoiDiagram::edges() const {
 
 Vector<Variant> VoronoiDiagram::sites() const {
 	Vector<Variant> result;
-	result.resize(_sites.size());
 	for (auto site : _sites)
 		result.push_back(site);
 	return result;
@@ -98,9 +96,13 @@ void VoronoiDiagram::build_objects() {
 	voronoi_detail::vector<Variant> gd_edges;
 	const jcv_edge* edge = jcv_diagram_get_edges(&_diagram);
 	while (edge) {
-		VoronoiEdge* gd_edge = memnew(VoronoiEdge(edge, this));
-		gd_edges.push_back(gd_edge);
-		_edges_by_address[reinterpret_cast<std::uintptr_t>(edge)] = gd_edge;
+		// apparent bug in jcv, egdes where start = end are reported as
+		// diagram edges, but do not exist when iterating over sites
+		if (edge->pos[0].x != edge->pos[1].x || edge->pos[0].y != edge->pos[1].y) {
+			VoronoiEdge* gd_edge = memnew(VoronoiEdge(edge, this));
+			gd_edges.push_back(gd_edge);
+			_edges_by_address[reinterpret_cast<std::uintptr_t>(edge)] = gd_edge;
+		}
 		edge = edge->next;
 	}
 	_edges.swap(gd_edges);
@@ -112,7 +114,7 @@ void VoronoiDiagram::build_objects() {
 		gd_sites.push_back(gd_site);
 		_sites_by_index[sites[i].index] = gd_site;
 	}
-	_sites.swap(_sites);
+	_sites.swap(gd_sites);
 }
 
 void VoronoiDiagram::_bind_methods() {
@@ -125,7 +127,6 @@ void Voronoi::set_points(Vector<Vector2> points) {
 
 	// translate Godot Vector2 points into jcv_points
 	voronoi_detail::vector<jcv_point> new_points;
-	new_points.resize(points.size());
 	for (int i = 0; i < points.size(); i++)
 		new_points.push_back({ points[i].x, points[i].y });
 
