@@ -136,6 +136,7 @@ public:
 
 	void set_points(Vector<Vector2> points);
 	void set_boundaries(Rect2 boundaries);
+	void relax_points(int iterations);
 	Ref<VoronoiDiagram> generate_diagram() const;
 
 protected:

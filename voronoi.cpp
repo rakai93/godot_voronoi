@@ -149,6 +149,43 @@ void userfree(void* ctx, void* ptr) {
 	return memfree(ptr);
 }
 
+void Voronoi::relax_points(int iterations = 1) {
+	voronoi_detail::vector<jcv_point> new_points;
+	for (int j = 0; j < iterations; j++) {
+		jcv_diagram diagram;
+		memset(&diagram, 0, sizeof(jcv_diagram));
+		jcv_diagram_generate_useralloc(
+			_points.size(),
+			_points.data(),
+			_has_boundaries ? &_boundaries : NULL,
+			NULL,
+			&useralloc,
+			&userfree,
+			&diagram
+		);
+		const jcv_site* sites = jcv_diagram_get_sites(&diagram);
+		const int numsites = diagram.numsites;
+		for (int i = 0; i < numsites; ++i) {
+			const jcv_site* site = &sites[i];
+			jcv_point sum = site->p;
+			int count = 1;
+
+			const jcv_graphedge* edge = site->edges;
+
+			while (edge) {
+				sum.x += edge->pos[0].x;
+				sum.y += edge->pos[0].y;
+				++count;
+				edge = edge->next;
+			}
+
+			new_points.push_back({ sum.x / count, sum.y / count });
+		}
+		jcv_diagram_free(&diagram);
+	}
+	_points.swap(new_points);
+}
+
 Ref<VoronoiDiagram> Voronoi::generate_diagram() const {
 	Ref<VoronoiDiagram> result { memnew(VoronoiDiagram) };
 	jcv_diagram_generate_useralloc(
@@ -167,5 +204,6 @@ Ref<VoronoiDiagram> Voronoi::generate_diagram() const {
 void Voronoi::_bind_methods() {
     ClassDB::bind_method(D_METHOD("set_points", "points"), &Voronoi::set_points);
     ClassDB::bind_method(D_METHOD("set_boundaries", "boundaries"), &Voronoi::set_boundaries);
+    ClassDB::bind_method(D_METHOD("relax_points", "iterations"), &Voronoi::relax_points);
     ClassDB::bind_method(D_METHOD("generate_diagram"), &Voronoi::generate_diagram);
 }
