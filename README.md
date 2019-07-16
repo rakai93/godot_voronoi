@@ -18,8 +18,10 @@ Example usage
 # Create voronoi generator
 var generator = Voronoi.new()
 generator.set_points(list_of_vector2)
-# optional:
+# optional: set boundaries for diagram, otherwise boundaries are computed based on points
 generator.set_boundaries(rect2_bounds)
+# optional: relax points N times, resulting in more equal sites
+generator.relax_points(2)
 
 # Generate diagram
 var diagram = generator.generate_diagram()
