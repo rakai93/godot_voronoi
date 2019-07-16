@@ -20,27 +20,30 @@ namespace voronoi_detail {
 template<typename T>
 struct GodotAllocator {
 	using value_type = T;
-	using propagate_on_container_move_assignment = std::true_type;
-	using is_always_equal = std::true_type;
 
-	inline T* allocate(size_t n) {
-		return memnew_arr(T, n);
+	constexpr GodotAllocator() noexcept {}
+
+    template<typename U>
+	GodotAllocator(const GodotAllocator<U>&) noexcept {}
+
+    template<typename U>
+	bool operator==(const GodotAllocator<U>&) const noexcept {
+        return true;
+    }
+
+	template<typename U>
+	bool operator!=(const GodotAllocator<U>&) const noexcept {
+        return false;
+    }
+
+	inline T* allocate(size_t n) const {
+		return reinterpret_cast<T*>(memalloc(sizeof(T) * n));
 	}
 
-	inline void deallocate(T* ptr, size_t) {
-		memdelete_arr(ptr);
+	inline void deallocate(T* ptr, size_t) const noexcept {
+		memfree(ptr);
 	}
 };
-
-template<typename T>
-bool operator==(const GodotAllocator<T>&, const GodotAllocator<T>&) {
-	return true;
-}
-
-template<typename T>
-bool operator!=(const GodotAllocator<T>&, const GodotAllocator<T>&) {
-	return false;
-}
 
 template<typename K, typename V>
 using map = std::map<K, V, std::less<K>, GodotAllocator<std::pair<const K, V>>>;
