@@ -19,30 +19,30 @@ namespace voronoi_detail {
 
 template<typename T>
 struct GodotAllocator {
-	using value_type = T;
+    using value_type = T;
 
-	constexpr GodotAllocator() noexcept {}
-
-    template<typename U>
-	GodotAllocator(const GodotAllocator<U>&) noexcept {}
+    constexpr GodotAllocator() noexcept {}
 
     template<typename U>
-	bool operator==(const GodotAllocator<U>&) const noexcept {
+    GodotAllocator(const GodotAllocator<U>&) noexcept {}
+
+    template<typename U>
+    bool operator==(const GodotAllocator<U>&) const noexcept {
         return true;
     }
 
-	template<typename U>
-	bool operator!=(const GodotAllocator<U>&) const noexcept {
+    template<typename U>
+    bool operator!=(const GodotAllocator<U>&) const noexcept {
         return false;
     }
 
-	inline T* allocate(size_t n) const {
-		return reinterpret_cast<T*>(memalloc(sizeof(T) * n));
-	}
+    inline T* allocate(size_t n) const {
+        return reinterpret_cast<T*>(memalloc(sizeof(T) * n));
+    }
 
-	inline void deallocate(T* ptr, size_t) const noexcept {
-		memfree(ptr);
-	}
+    inline void deallocate(T* ptr, size_t) const noexcept {
+        memfree(ptr);
+    }
 };
 
 template<typename K, typename V>
@@ -58,89 +58,89 @@ class VoronoiSite;
 class VoronoiDiagram;
 
 class VoronoiEdge : public Object {
-	GDCLASS(VoronoiEdge, Object)
+    GDCLASS(VoronoiEdge, Object)
 
 public:
-	const jcv_edge* _edge;
-	const VoronoiDiagram* _diagram;
+    const jcv_edge* _edge;
+    const VoronoiDiagram* _diagram;
 
-	VoronoiEdge() = default;
-	inline VoronoiEdge(const jcv_edge* edge, const VoronoiDiagram* diagram)
-		: _edge(edge), _diagram(diagram) {
-	}
+    VoronoiEdge() = default;
+    inline VoronoiEdge(const jcv_edge* edge, const VoronoiDiagram* diagram)
+        : _edge(edge), _diagram(diagram) {
+    }
 
-	~VoronoiEdge() = default;
+    ~VoronoiEdge() = default;
 
-	Vector<Variant> sites() const;
-	Vector2 start() const;
-	Vector2 end() const;
+    Vector<Variant> sites() const;
+    Vector2 start() const;
+    Vector2 end() const;
 
 protected:
-	static void _bind_methods();
+    static void _bind_methods();
 };
 
 class VoronoiSite : public Object {
-	GDCLASS(VoronoiSite, Object)
+    GDCLASS(VoronoiSite, Object)
 
 public:
-	const jcv_site* _site;
-	const VoronoiDiagram* _diagram;
+    const jcv_site* _site;
+    const VoronoiDiagram* _diagram;
 
-	VoronoiSite() = default;
-	inline VoronoiSite(const jcv_site* site, const VoronoiDiagram* diagram)
-		: _site(site), _diagram(diagram) {
-	}
+    VoronoiSite() = default;
+    inline VoronoiSite(const jcv_site* site, const VoronoiDiagram* diagram)
+        : _site(site), _diagram(diagram) {
+    }
 
-	~VoronoiSite() = default;
+    ~VoronoiSite() = default;
 
-	int index() const;
-	Vector2 center() const;
-	Vector<Variant> edges() const;
-	Vector<Variant> neighbors() const;
+    int index() const;
+    Vector2 center() const;
+    Vector<Variant> edges() const;
+    Vector<Variant> neighbors() const;
 
 protected:
-	static void _bind_methods();
+    static void _bind_methods();
 };
 
 class VoronoiDiagram : public Reference {
-	GDCLASS(VoronoiDiagram, Reference)
+    GDCLASS(VoronoiDiagram, Reference)
 
 public:
-	jcv_diagram _diagram;
+    jcv_diagram _diagram;
 
-	voronoi_detail::vector<Variant> _edges;
-	voronoi_detail::vector<Variant> _sites;
+    voronoi_detail::vector<Variant> _edges;
+    voronoi_detail::vector<Variant> _sites;
 
-	voronoi_detail::map<std::uintptr_t, VoronoiEdge*> _edges_by_address;
-	voronoi_detail::map<int, VoronoiSite*> _sites_by_index;
+    voronoi_detail::map<std::uintptr_t, VoronoiEdge*> _edges_by_address;
+    voronoi_detail::map<int, VoronoiSite*> _sites_by_index;
 
-	VoronoiDiagram();
-	~VoronoiDiagram();
+    VoronoiDiagram();
+    ~VoronoiDiagram();
 
-	void build_objects();
+    void build_objects();
 
-	Vector<Variant> edges() const;
-	Vector<Variant> sites() const;
+    Vector<Variant> edges() const;
+    Vector<Variant> sites() const;
 
 protected:
-	static void _bind_methods();
+    static void _bind_methods();
 };
 
 class Voronoi : public Reference {
-	GDCLASS(Voronoi, Reference)
+    GDCLASS(Voronoi, Reference)
 
-	jcv_rect _boundaries;
-	bool _has_boundaries;
-	voronoi_detail::vector<jcv_point> _points;
+    jcv_rect _boundaries;
+    bool _has_boundaries;
+    voronoi_detail::vector<jcv_point> _points;
 
 public:
-	Voronoi() = default;
+    Voronoi() = default;
     ~Voronoi() = default;
 
-	void set_points(Vector<Vector2> points);
-	void set_boundaries(Rect2 boundaries);
-	void relax_points(int iterations);
-	Ref<VoronoiDiagram> generate_diagram() const;
+    void set_points(Vector<Vector2> points);
+    void set_boundaries(Rect2 boundaries);
+    void relax_points(int iterations);
+    Ref<VoronoiDiagram> generate_diagram() const;
 
 protected:
     static void _bind_methods();
