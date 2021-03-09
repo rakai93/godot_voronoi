@@ -150,13 +150,13 @@ void userfree(void* ctx, void* ptr) {
 }
 
 void Voronoi::relax_points(int iterations = 1) {
-    voronoi_detail::vector<jcv_point> new_points;
+    voronoi_detail::vector<jcv_point> new_points {_points};
     for (int j = 0; j < iterations; j++) {
         jcv_diagram diagram;
         memset(&diagram, 0, sizeof(jcv_diagram));
         jcv_diagram_generate_useralloc(
-            _points.size(),
-            _points.data(),
+            new_points.size(),
+            new_points.data(),
             _has_boundaries ? &_boundaries : NULL,
             NULL,
             &useralloc,
@@ -165,6 +165,7 @@ void Voronoi::relax_points(int iterations = 1) {
         );
         const jcv_site* sites = jcv_diagram_get_sites(&diagram);
         const int numsites = diagram.numsites;
+        new_points.clear();
         for (int i = 0; i < numsites; ++i) {
             const jcv_site* site = &sites[i];
             jcv_point sum = site->p;
