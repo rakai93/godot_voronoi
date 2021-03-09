@@ -93,7 +93,7 @@ Vector<Variant> VoronoiDiagram::sites() const {
 }
 
 void VoronoiDiagram::build_objects() {
-    voronoi_detail::vector<Variant> gd_edges;
+    voronoi_detail::vector<VoronoiEdge*> gd_edges;
     const jcv_edge* edge = jcv_diagram_get_edges(&_diagram);
     while (edge) {
         // apparent bug in jcv, egdes where start = end are reported as
@@ -107,7 +107,7 @@ void VoronoiDiagram::build_objects() {
     }
     _edges.swap(gd_edges);
 
-    voronoi_detail::vector<Variant> gd_sites;
+    voronoi_detail::vector<VoronoiSite*> gd_sites;
     const jcv_site* sites = jcv_diagram_get_sites(&_diagram);
     for (int i = 0; i < _diagram.numsites; i++) {
         VoronoiSite* gd_site = memnew(VoronoiSite(&sites[i], this));

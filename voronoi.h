@@ -108,8 +108,8 @@ class VoronoiDiagram : public Reference {
 public:
     jcv_diagram _diagram;
 
-    voronoi_detail::vector<Variant> _edges;
-    voronoi_detail::vector<Variant> _sites;
+    voronoi_detail::vector<VoronoiEdge*> _edges;
+    voronoi_detail::vector<VoronoiSite*> _sites;
 
     voronoi_detail::map<std::uintptr_t, VoronoiEdge*> _edges_by_address;
     voronoi_detail::map<int, VoronoiSite*> _sites_by_index;
