@@ -8,10 +8,10 @@
 
 #include <core/math/vector2.h>
 #include <core/math/rect2.h>
-#include <core/object.h>
-#include <core/reference.h>
-#include <core/variant.h>
-#include <core/vector.h>
+#include <core/object/object.h>
+#include <core/object/ref_counted.h>
+#include <core/variant/variant.h>
+#include <core/templates/vector.h>
 
 #include "lib/src/jc_voronoi.h"
 
@@ -102,8 +102,8 @@ protected:
     static void _bind_methods();
 };
 
-class VoronoiDiagram : public Reference {
-    GDCLASS(VoronoiDiagram, Reference)
+class VoronoiDiagram : public RefCounted {
+    GDCLASS(VoronoiDiagram, RefCounted)
 
 public:
     jcv_diagram _diagram;
@@ -126,8 +126,8 @@ protected:
     static void _bind_methods();
 };
 
-class Voronoi : public Reference {
-    GDCLASS(Voronoi, Reference)
+class Voronoi : public RefCounted {
+    GDCLASS(Voronoi, RefCounted)
 
     jcv_rect _boundaries;
     bool _has_boundaries;
